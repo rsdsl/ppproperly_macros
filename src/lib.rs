@@ -9,7 +9,7 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
 
     quote!(
         impl Serialize for #name {
-            fn serialize<W: std::io::Write>(&self, w: W) -> io::Result<()> {
+            fn serialize<W: std::io::Write>(&self, w: W) -> Result<()> {
                 w.write_all(&[42])?;
                 Ok(())
             }
