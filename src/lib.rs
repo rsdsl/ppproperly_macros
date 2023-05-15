@@ -1,14 +1,19 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+use proc_macro::TokenStream;
+use quote::quote;
+use syn::{parse, ItemStruct};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[proc_macro_derive(Serialize)]
+pub fn derive_serialize(item: TokenStream) -> TokenStream {
+    let ast: ItemStruct = parse(item).unwrap();
+    let name = ast.ident;
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+    quote!(
+        impl Serialize for #name {
+            fn serialize<W: Write>(&self, w: W) -> io::Result<()> {
+                w.write_all(&[42])?;
+                Ok(())
+            }
+        }
+    )
+    .into()
 }
