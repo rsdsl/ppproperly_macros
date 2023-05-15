@@ -1,12 +1,6 @@
-use std::io::{self, Write};
-
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse, ItemStruct};
-
-pub trait Serialize {
-    fn serialize<W: Write>(&self, w: W) -> io::Result<()>;
-}
 
 #[proc_macro_derive(Serialize)]
 pub fn derive_serialize(item: TokenStream) -> TokenStream {
