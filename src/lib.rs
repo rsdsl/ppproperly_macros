@@ -7,10 +7,19 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
     let ast: ItemStruct = parse(item).unwrap();
     let name = ast.ident;
 
+    let serializers = ast.fields.iter().map(|field| {
+        let field_name = field.ident.as_ref().expect("should be a names struct");
+
+        quote!(
+            self.#field_name.serialize(w)?;
+        )
+    });
+
     quote!(
         impl Serialize for #name {
             fn serialize<W: std::io::Write>(&self, w: &mut W) -> Result<()> {
-                w.write_all(&[42])?;
+                #(#serializers) *
+
                 Ok(())
             }
         }
