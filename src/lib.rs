@@ -26,3 +26,28 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
     )
     .into()
 }
+
+#[proc_macro_derive(Deserialize)]
+pub fn derive_deserialize(item: TokenStream) -> TokenStream {
+    let ast: ItemStruct = parse(item).unwrap();
+    let name = ast.ident;
+
+    let deserializers = ast.fields.iter().map(|field| {
+        let field_name = field.ident.as_ref().expect("should be a names struct");
+
+        quote!(
+            self.#field_name.deserialize(r)?;
+        )
+    });
+
+    quote!(
+        impl Deserialize for #name {
+            fn deserialize<R: std::io::Read>(&mut self, r: &mut R) -> Result<()> {
+                #(#deserializers) *
+
+                Ok(())
+            }
+        }
+    )
+    .into()
+}
