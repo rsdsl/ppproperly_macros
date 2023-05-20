@@ -83,7 +83,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
         out.extend(
             vec![quote!(
-                let r = if let Some(attr) = len_for.get(#field_name) {
+                let r = if let Some(attr) = len_for.get("#field_name") {
                     r.take(attr)
                 } else {
                     r
@@ -94,7 +94,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
         out.extend(
             vec![quote!(
-                if let Some(attr) = discriminant_for.get(#field_name) {
+                if let Some(attr) = discriminant_for.get("#field_name") {
                     self.#field_name.deserialize_with_discriminant(r, attr)?;
                 } else {
                     self.#field_name.deserialize(r)?;
