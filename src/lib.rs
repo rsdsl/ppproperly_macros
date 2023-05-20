@@ -1,5 +1,6 @@
 use darling::FromAttributes;
 use proc_macro::TokenStream;
+use proc_macro2::TokenStream as TokenStream2;
 use quote::quote;
 use syn::{parse, ItemStruct};
 
@@ -42,7 +43,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let name = ast.ident;
 
     let deserializers = ast.fields.iter().map(|field| {
-        let mut out = TokenStream::new();
+        let mut out = TokenStream2::new();
 
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
@@ -52,8 +53,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
             vec![quote!(
                 let mut len_for = HashMap::new();
                 let mut discriminant_for = HashMap::new();
-            )
-            .into()]
+            )]
             .into_iter(),
         );
 
@@ -64,8 +64,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                     len.deserialize(r)?;
 
                     len_for.insert(attr, len);
-                )
-                .into()]
+                )]
                 .into_iter(),
             );
         }
@@ -77,8 +76,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                     discriminant.deserialize(r)?;
 
                     discriminant_for.insert(attr, discriminant);
-                )
-                .into()]
+                )]
                 .into_iter(),
             );
         }
@@ -90,8 +88,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                 } else {
                     r
                 };
-            )
-            .into()]
+            )]
             .into_iter(),
         );
 
@@ -102,8 +99,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                 } else {
                     self.#field_name.deserialize(r)?;
                 }
-            )
-            .into()]
+            )]
             .into_iter(),
         );
 
