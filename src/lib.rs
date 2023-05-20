@@ -27,7 +27,7 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(Deserialize)]
+#[proc_macro_derive(Deserialize, attributes(len_for))]
 pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let ast: ItemStruct = parse(item).unwrap();
     let name = ast.ident;
@@ -35,6 +35,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let deserializers = ast.fields.iter().map(|field| {
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
+        println!("{:?}", field.attrs);
         quote!(
             self.#field_name.deserialize(r)?;
         )
