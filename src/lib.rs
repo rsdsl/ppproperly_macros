@@ -42,13 +42,72 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let name = ast.ident;
 
     let deserializers = ast.fields.iter().map(|field| {
+        let mut out = TokenStream::new();
+
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
         let args = Args::from_attributes(&field.attrs).unwrap();
 
-        quote!(
-            self.#field_name.deserialize(r)?;
-        )
+        out.extend(
+            vec![quote!(
+                let mut len_for = HashMap::new();
+                let mut discriminant_for = HashMap::new();
+            )
+            .into()]
+            .into_iter(),
+        );
+
+        if let Some(attr) = args.len_for {
+            out.extend(
+                vec![quote!(
+                    let mut len = 0u16;
+                    len.deserialize(r)?;
+
+                    len_for.insert(attr, len);
+                )
+                .into()]
+                .into_iter(),
+            );
+        }
+
+        if let Some(attr) = args.discriminant_for {
+            out.extend(
+                vec![quote!(
+                    let mut discriminant = 0u8;
+                    discriminant.deserialize(r)?;
+
+                    discriminant_for.insert(attr, discriminant);
+                )
+                .into()]
+                .into_iter(),
+            );
+        }
+
+        out.extend(
+            vec![quote!(
+                let r = if let Some(attr) = len_for.get(field_name) {
+                    r.take(attr)
+                } else {
+                    r
+                };
+            )
+            .into()]
+            .into_iter(),
+        );
+
+        out.extend(
+            vec![quote!(
+                if let Some(attr) = discriminant_for.get(field_name) {
+                    self.#field_name.deserialize_with_discriminant(r, attr)?;
+                } else {
+                    self.#field_name.deserialize(r)?;
+                }
+            )
+            .into()]
+            .into_iter(),
+        );
+
+        out
     });
 
     quote!(
