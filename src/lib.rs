@@ -8,6 +8,7 @@ use syn::{parse, ItemStruct};
 #[darling(default)]
 struct Args {
     len_for: Option<String>,
+    discriminant_for: Option<String>,
 }
 
 #[proc_macro_derive(Serialize)]
@@ -44,7 +45,6 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
         let args = Args::from_attributes(&field.attrs).unwrap();
-        println!("{:?}", args);
 
         quote!(
             self.#field_name.deserialize(r)?;
