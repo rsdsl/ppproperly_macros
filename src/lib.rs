@@ -63,7 +63,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                     let mut len = 0u16;
                     len.deserialize(r)?;
 
-                    len_for.insert(attr, len);
+                    len_for.insert(#attr, len);
                 )]
                 .into_iter(),
             );
@@ -75,7 +75,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                     let mut discriminant = 0u8;
                     discriminant.deserialize(r)?;
 
-                    discriminant_for.insert(attr, discriminant);
+                    discriminant_for.insert(#attr, discriminant);
                 )]
                 .into_iter(),
             );
