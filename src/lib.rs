@@ -51,8 +51,8 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
         out.extend(
             vec![quote!(
-                let mut len_for = HashMap::new();
-                let mut discriminant_for = HashMap::new();
+                let mut len_for = std::collections::HashMap::new();
+                let mut discriminant_for = std::collections::HashMap::new();
             )]
             .into_iter(),
         );
