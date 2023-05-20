@@ -88,16 +88,14 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
             discriminant_for.insert(attr, ());
         }
 
-        out.extend(
-            vec![quote!(
-                let r = if let Some(attr) = len_for.get("#field_name") {
-                    r.take(attr)
-                } else {
-                    r
-                };
-            )]
-            .into_iter(),
-        );
+        if len_for.contains_key(&field_name.to_string()) {
+            out.extend(
+                vec![quote!(
+                    let r = r.take(len_for.get("#field_name").unwrap());
+                )]
+                .into_iter(),
+            );
+        }
 
         if discriminant_for.contains_key(&field_name.to_string()) {
             out.extend(
