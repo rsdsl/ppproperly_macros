@@ -35,7 +35,6 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let deserializers = ast.fields.iter().map(|field| {
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
-        println!("{:?}", field.ty);
         quote!(
             self.#field_name.deserialize(r)?;
         )
