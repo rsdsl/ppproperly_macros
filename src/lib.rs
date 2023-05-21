@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use darling::FromAttributes;
 use proc_macro::TokenStream;
-use proc_macro2::TokenStream as TokenStream2;
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{parse, ItemStruct};
 
@@ -27,18 +27,22 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
         let args = Args::from_attributes(&field.attrs).unwrap();
 
         if let Some(attr) = args.len_for {
+            let attr_ident = Ident::new(&attr, Span::call_site());
+
             out.extend(
                 vec![quote!(
-                    self.#attr.len().serialize(w)?;
+                    self.#attr_ident.len().serialize(w)?;
                 )]
                 .into_iter(),
             );
         }
 
         if let Some(attr) = args.discriminant_for {
+            let attr_ident = Ident::new(&attr, Span::call_site());
+
             out.extend(
                 vec![quote!(
-                    self.#attr.discriminant().serialize(w)?;
+                    self.#attr_ident.discriminant().serialize(w)?;
                 )]
                 .into_iter(),
             );
