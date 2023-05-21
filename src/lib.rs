@@ -142,7 +142,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if len_for.contains_key(&field_name.to_string()) {
             out.extend(
                 vec![quote!(
-                    let r = r.take(len_for.get(String::from(#field_name)).unwrap());
+                    let r = r.take(*len_for.get(String::from(#field_name)).unwrap() as u64);
                 )]
                 .into_iter(),
             );
