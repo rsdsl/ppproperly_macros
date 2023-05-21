@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use darling::FromAttributes;
 use proc_macro::TokenStream;
 use proc_macro2::TokenStream as TokenStream2;
@@ -12,17 +14,44 @@ struct Args {
     discriminant_for: Option<String>,
 }
 
-#[proc_macro_derive(Serialize)]
+#[proc_macro_derive(Serialize, attributes(ppproperly))]
 pub fn derive_serialize(item: TokenStream) -> TokenStream {
     let ast: ItemStruct = parse(item).unwrap();
     let name = ast.ident;
 
     let serializers = ast.fields.iter().map(|field| {
+        let mut out = TokenStream2::new();
+
         let field_name = field.ident.as_ref().expect("should be a names struct");
 
-        quote!(
-            self.#field_name.serialize(w)?;
-        )
+        let args = Args::from_attributes(&field.attrs).unwrap();
+
+        if let Some(attr) = args.len_for {
+            out.extend(
+                vec![quote!(
+                    self.#attr.len().serialize(w)?;
+                )]
+                .into_iter(),
+            );
+        }
+
+        if let Some(attr) = args.discriminant_for {
+            out.extend(
+                vec![quote!(
+                    self.#attr.discriminant().serialize(w)?;
+                )]
+                .into_iter(),
+            );
+        }
+
+        out.extend(
+            vec![quote!(
+                self.#field_name.serialize(w)?;
+            )]
+            .into_iter(),
+        );
+
+        out
     });
 
     quote!(
@@ -42,8 +71,8 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let ast: ItemStruct = parse(item).unwrap();
     let name = ast.ident;
 
-    let mut len_for = std::collections::HashMap::new();
-    let mut discriminant_for = std::collections::HashMap::new();
+    let mut len_for = HashMap::new();
+    let mut discriminant_for = HashMap::new();
 
     let has_len_annotations = ast.fields.iter().any(|field| {
         let args = Args::from_attributes(&field.attrs).unwrap();
