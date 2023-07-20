@@ -112,6 +112,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         let mut out = TokenStream2::new();
 
         let field_name = field.ident.as_ref().expect("should be a names struct");
+        let field_name_string = field_name.to_string();
 
         let args = Args::from_attributes(&field.attrs).unwrap();
 
@@ -146,7 +147,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if len_for.contains_key(&field_name.to_string()) {
             out.extend(
                 vec![quote!(
-                    let r = r.take(*len_for.get("#field_name").unwrap() as u64);
+                    let r = r.take(*len_for.get(#field_name_string).unwrap() as u64);
                 )]
                 .into_iter(),
             );
@@ -155,7 +156,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if discriminant_for.contains_key(&field_name.to_string()) {
             out.extend(
                 vec![quote!(
-                    let attr = discriminant_for.get("#field_name").unwrap();
+                    let attr = discriminant_for.get(#field_name_string).unwrap();
                     self.#field_name.deserialize_with_discriminant(r, attr)?;
                 )]
                 .into_iter(),
