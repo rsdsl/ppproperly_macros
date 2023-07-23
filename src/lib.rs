@@ -26,23 +26,23 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
 
         let args = Args::from_attributes(&field.attrs).unwrap();
 
-        if let Some(attr) = args.len_for {
-            let attr_ident = Ident::new(&attr, Span::call_site());
-
-            out.extend(
-                vec![quote!(
-                    self.#attr_ident.len().serialize(w)?;
-                )]
-                .into_iter(),
-            );
-        }
-
         if let Some(attr) = args.discriminant_for {
             let attr_ident = Ident::new(&attr, Span::call_site());
 
             out.extend(
                 vec![quote!(
                     self.#attr_ident.discriminant().serialize(w)?;
+                )]
+                .into_iter(),
+            );
+        }
+
+        if let Some(attr) = args.len_for {
+            let attr_ident = Ident::new(&attr, Span::call_site());
+
+            out.extend(
+                vec![quote!(
+                    self.#attr_ident.len().serialize(w)?;
                 )]
                 .into_iter(),
             );
@@ -75,34 +75,34 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
     let ast: ItemStruct = parse(item).unwrap();
     let name = ast.ident;
 
-    let mut len_for = HashMap::new();
     let mut discriminant_for = HashMap::new();
-
-    let has_len_annotations = ast.fields.iter().any(|field| {
-        let args = Args::from_attributes(&field.attrs).unwrap();
-        args.len_for.is_some()
-    });
+    let mut len_for = HashMap::new();
 
     let has_discriminant_annotations = ast.fields.iter().any(|field| {
         let args = Args::from_attributes(&field.attrs).unwrap();
         args.discriminant_for.is_some()
     });
 
-    let mut map_declarations = TokenStream2::new();
+    let has_len_annotations = ast.fields.iter().any(|field| {
+        let args = Args::from_attributes(&field.attrs).unwrap();
+        args.len_for.is_some()
+    });
 
-    if has_len_annotations {
-        map_declarations.extend(
-            vec![quote!(
-                let mut len_for = std::collections::HashMap::new();
-            )]
-            .into_iter(),
-        );
-    }
+    let mut map_declarations = TokenStream2::new();
 
     if has_discriminant_annotations {
         map_declarations.extend(
             vec![quote!(
                 let mut discriminant_for = std::collections::HashMap::new();
+            )]
+            .into_iter(),
+        );
+    }
+
+    if has_len_annotations {
+        map_declarations.extend(
+            vec![quote!(
+                let mut len_for = std::collections::HashMap::new();
             )]
             .into_iter(),
         );
@@ -116,20 +116,6 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
         let args = Args::from_attributes(&field.attrs).unwrap();
 
-        if let Some(attr) = args.len_for {
-            out.extend(
-                vec![quote!(
-                    let mut len = 0u16;
-                    len.deserialize(r)?;
-
-                    len_for.insert(#attr, len);
-                )]
-                .into_iter(),
-            );
-
-            len_for.insert(attr, ());
-        }
-
         if let Some(attr) = args.discriminant_for {
             out.extend(
                 vec![quote!(
@@ -142,6 +128,20 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
             );
 
             discriminant_for.insert(attr, ());
+        }
+
+        if let Some(attr) = args.len_for {
+            out.extend(
+                vec![quote!(
+                    let mut len = 0u16;
+                    len.deserialize(r)?;
+
+                    len_for.insert(#attr, len);
+                )]
+                .into_iter(),
+            );
+
+            len_for.insert(attr, ());
         }
 
         if len_for.contains_key(&field_name.to_string()) {
