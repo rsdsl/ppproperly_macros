@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use darling::{FromAttributes, FromMeta};
+use darling::FromAttributes;
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
@@ -11,13 +11,7 @@ use syn::{parse, ItemStruct};
 #[darling(default)]
 struct Args {
     len_for: Option<String>,
-    discriminant_for: Option<DiscriminantArgs>,
-}
-
-#[derive(Debug, Default, FromMeta)]
-struct DiscriminantArgs {
-    field: String,
-    data_type: String,
+    discriminant_for: Option<String>,
 }
 
 #[proc_macro_derive(Serialize, attributes(ppproperly))]
@@ -33,11 +27,11 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
         let args = Args::from_attributes(&field.attrs).unwrap();
 
         if let Some(attr) = args.discriminant_for {
-            let field_ident = Ident::new(&attr.field, Span::call_site());
+            let attr_ident = Ident::new(&attr, Span::call_site());
 
             out.extend(
                 vec![quote!(
-                    self.#field_ident.discriminant().serialize(w)?;
+                    self.#attr_ident.discriminant().serialize(w)?;
                 )]
                 .into_iter(),
             );
@@ -123,20 +117,17 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         let args = Args::from_attributes(&field.attrs).unwrap();
 
         if let Some(attr) = args.discriminant_for {
-            let field = attr.field;
-            let data_type = attr.data_type;
-
             out.extend(
                 vec![quote!(
-                    let mut discriminant = #data_type::default();
+                    let mut discriminant = 0u8;
                     discriminant.deserialize(r)?;
 
-                    discriminant_for.insert(#field, discriminant);
+                    discriminant_for.insert(#attr, discriminant);
                 )]
                 .into_iter(),
             );
 
-            discriminant_for.insert(field, ());
+            discriminant_for.insert(attr, ());
         }
 
         if let Some(attr) = args.len_for {
