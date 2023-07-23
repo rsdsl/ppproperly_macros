@@ -119,7 +119,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if let Some(attr) = args.discriminant_for {
             out.extend(
                 vec![quote!(
-                    let mut discriminant = 0u8;
+                    let mut discriminant = Default::default();
                     discriminant.deserialize(r)?;
 
                     discriminant_for.insert(#attr, discriminant);
