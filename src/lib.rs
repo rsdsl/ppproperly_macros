@@ -124,11 +124,11 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
         if let Some(attr) = args.discriminant_for {
             let field = attr.field;
-            let data_type = attr.data_type;
+            let data_type_ident = Ident::new(&attr.data_type, Span::call_site());
 
             out.extend(
                 vec![quote!(
-                    let mut discriminant = #data_type::default();
+                    let mut discriminant = #data_type_ident::default();
                     discriminant.deserialize(r)?;
 
                     discriminant_for.insert(#field, discriminant);
