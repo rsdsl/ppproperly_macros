@@ -23,7 +23,7 @@ struct DiscriminantArgs {
 #[derive(Debug, Default, FromMeta)]
 struct LenArgs {
     field: String,
-    offset: isize,
+    offset: u16,
 }
 
 #[proc_macro_derive(Serialize, attributes(ppproperly))]
