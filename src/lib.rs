@@ -184,7 +184,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
 
     quote!(
         impl Deserialize for #name {
-            fn deserialize<R: std::io::Read>(&mut self, r: &mut R) -> Result<()> {
+            fn deserialize<R: std::io::Read + peekread::PeekRead>(&mut self, r: &mut R) -> Result<()> {
                 #map_declarations
 
                 #(#deserializers) *
