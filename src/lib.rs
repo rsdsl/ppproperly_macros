@@ -10,14 +10,20 @@ use syn::{parse, ItemStruct};
 #[darling(attributes(ppproperly))]
 #[darling(default)]
 struct Args {
-    len_for: Option<String>,
     discriminant_for: Option<DiscriminantArgs>,
+    len_for: Option<LenArgs>,
 }
 
 #[derive(Debug, Default, FromMeta)]
 struct DiscriminantArgs {
     field: String,
     data_type: String,
+}
+
+#[derive(Debug, Default, FromMeta)]
+struct LenArgs {
+    field: String,
+    offset: isize,
 }
 
 #[proc_macro_derive(Serialize, attributes(ppproperly))]
@@ -44,11 +50,12 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
         }
 
         if let Some(attr) = args.len_for {
-            let attr_ident = Ident::new(&attr, Span::call_site());
+            let field_ident = Ident::new(&attr.field, Span::call_site());
+            let offset = attr.offset;
 
             out.extend(
                 vec![quote!(
-                    self.#attr_ident.len().serialize(w)?;
+                    (self.#field_ident.len() + #offset).serialize(w)?;
                 )]
                 .into_iter(),
             );
@@ -140,17 +147,20 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         }
 
         if let Some(attr) = args.len_for {
+            let field = attr.field;
+            let offset = attr.offset;
+
             out.extend(
                 vec![quote!(
                     let mut len = 0u16;
                     len.deserialize(r)?;
 
-                    len_for.insert(#attr, len);
+                    len_for.insert(#field, len - #offset);
                 )]
                 .into_iter(),
             );
 
-            len_for.insert(attr, ());
+            len_for.insert(field, ());
         }
 
         if len_for.contains_key(&field_name.to_string()) {
