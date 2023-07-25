@@ -23,7 +23,7 @@ struct DiscriminantArgs {
 #[derive(Debug, Default, FromMeta)]
 struct LenArgs {
     field: String,
-    offset: u16,
+    offset: u8,
     data_type: String,
 }
 
@@ -53,10 +53,11 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
         if let Some(attr) = args.len_for {
             let field_ident = Ident::new(&attr.field, Span::call_site());
             let offset = attr.offset;
+            let data_type_ident = Ident::new(&attr.data_type, Span::call_site());
 
             out.extend(
                 vec![quote!(
-                    (self.#field_ident.len() + #offset).serialize(w)?;
+                    (self.#field_ident.len() + #data_type_ident::from(#offset)).serialize(w)?;
                 )]
                 .into_iter(),
             );
@@ -157,7 +158,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                     let mut len = #data_type_ident::default();
                     len.deserialize(r)?;
 
-                    len_for.insert(#field, len - #offset);
+                    len_for.insert(#field, len - #data_type_ident::from(#offset));
                 )]
                 .into_iter(),
             );
