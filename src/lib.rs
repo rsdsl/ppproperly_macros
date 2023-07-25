@@ -24,6 +24,7 @@ struct DiscriminantArgs {
 struct LenArgs {
     field: String,
     offset: u16,
+    data_type: String,
 }
 
 #[proc_macro_derive(Serialize, attributes(ppproperly))]
@@ -149,10 +150,11 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if let Some(attr) = args.len_for {
             let field = attr.field;
             let offset = attr.offset;
+            let data_type_ident = Ident::new(&attr.data_type, Span::call_site());
 
             out.extend(
                 vec![quote!(
-                    let mut len = 0u16;
+                    let mut len = #data_type_ident::default();
                     len.deserialize(r)?;
 
                     len_for.insert(#field, len - #offset);
