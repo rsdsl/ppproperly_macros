@@ -169,7 +169,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         if len_for.contains_key(&field_name.to_string()) {
             out.extend(
                 vec![quote!(
-                    let r = r.take(*len_for.get(#field_name_string).unwrap() as u64);
+                    let t = r.take(*len_for.get(#field_name_string).unwrap() as u64);
                 )]
                 .into_iter(),
             );
@@ -179,7 +179,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
             out.extend(
                 vec![quote!(
                     let attr = discriminant_for.get(#field_name_string).unwrap();
-                    self.#field_name.deserialize_with_discriminant(r, attr)?;
+                    self.#field_name.deserialize_with_discriminant(&mut t, attr)?;
                 )]
                 .into_iter(),
             );
