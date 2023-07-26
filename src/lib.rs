@@ -57,7 +57,8 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
 
             out.extend(
                 vec![quote!(
-                    (self.#field_ident.len() + #data_type_ident::from(#offset)).serialize(w)?;
+                    let n = #data_type_ident::try_from(self.#field_ident.len())?;
+                    (n + #data_type_ident::from(#offset)).serialize(w)?;
                 )]
                 .into_iter(),
             );
