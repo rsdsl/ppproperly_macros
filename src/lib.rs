@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use darling::{FromAttributes, FromMeta};
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, Punct, Spacing, Span, TokenStream as TokenStream2, TokenTree};
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
 use quote::quote;
 use syn::{parse, ItemStruct};
 
@@ -167,7 +167,6 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
         }
 
         if len_for.contains_key(&field_name.to_string()) {
-            out.extend([TokenTree::Punct(Punct::new('{', Spacing::Alone))].into_iter());
             out.extend(
                 vec![quote!(
                     let r = &mut r.take(*len_for.get(#field_name_string).unwrap() as u64);
@@ -191,10 +190,6 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
                 )]
                 .into_iter(),
             );
-        }
-
-        if len_for.contains_key(&field_name.to_string()) {
-            out.extend([TokenTree::Punct(Punct::new('}', Spacing::Alone))].into_iter());
         }
 
         out
