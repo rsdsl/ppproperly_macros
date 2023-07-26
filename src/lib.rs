@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use darling::{FromAttributes, FromMeta};
 use proc_macro::TokenStream;
-use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use proc_macro2::{Delimiter, Group, Ident, Span, TokenStream as TokenStream2, TokenTree};
 use quote::quote;
 use syn::{parse, ItemStruct};
 
@@ -70,7 +70,7 @@ pub fn derive_serialize(item: TokenStream) -> TokenStream {
             .into_iter(),
         );
 
-        out
+        TokenTree::Group(Group::new(Delimiter::Brace, out))
     });
 
     quote!(
@@ -192,7 +192,7 @@ pub fn derive_deserialize(item: TokenStream) -> TokenStream {
             );
         }
 
-        out
+        TokenTree::Group(Group::new(Delimiter::Brace, out))
     });
 
     quote!(
